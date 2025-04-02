@@ -1,0 +1,13 @@
+name: lenet-env
+channels:
+  - defaults
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.9
+  - pytorch
+  - torchvision
+  - torchaudio
+  - tqdm
+  - tensorboard
+  - pip
