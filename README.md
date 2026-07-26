@@ -17,17 +17,19 @@ This project implements a **two-stage training pipeline** (pretraining + finetun
 ## 🗂️ Folder Structure
 
 ```
-lenet_mnist_experiment_v3_logs/
-├── configs.py               # Configurations: batch size, epochs, LR, etc.
-├── data_utils.py            # Data loader with torchvision + preprocessing
+lenet_mnist/
+├── lenet/                   # Library package
+│   ├── config.py            # Default hyperparameters and paths
+│   ├── data.py               # Data loader with torchvision + preprocessing
+│   ├── model.py              # LeNet-5 model architecture
+│   ├── train.py               # Training loop with TensorBoard and CSV logging
+│   └── evaluate.py           # Accuracy calculation on test set
+├── main.py                  # CLI entry point for training + finetuning + eval
 ├── environment.yml          # Conda environment definition
-├── evaluate.py              # Accuracy calculation on test set
-├── lenet_pretrained.pth     # Saved pretrained model
-├── main.py                  # Entry point for training + finetuning + eval
-├── model.py                 # LeNet-5 model architecture
 ├── requirements.txt         # pip dependencies (alternative to conda)
-├── train.py                 # Training loop with TensorBoard and CSV logging
-└── runs/                    # TensorBoard logs and CSV loss tracking
+├── checkpoints/             # Saved model weights (gitignored, created on first run)
+├── data/                    # MNIST dataset, downloaded automatically (gitignored)
+└── runs/                    # TensorBoard logs and CSV loss tracking (gitignored)
 ```
 
 ---
@@ -52,6 +54,14 @@ This performs:
 - 📈 Evaluation on test set
 - 🔁 Finetuning on the same dataset
 - ✅ Final evaluation with updated weights
+
+Defaults live in [`lenet/config.py`](lenet/config.py) and can be overridden via CLI flags, e.g.:
+
+```bash
+python main.py --epochs-pretrain 10 --epochs-finetune 5 --lr 0.005 --batch-size 128
+```
+
+Run `python main.py --help` for the full list of options (batch size, epochs, learning rate, momentum, data/checkpoint/log directories).
 
 ---
 
@@ -84,7 +94,7 @@ Then open your browser at [http://localhost:6006](http://localhost:6006)
 - CSV logs are stored at:
   - `runs/pretrain/pretrain_log.csv`
   - `runs/finetune/finetune_log.csv`
-- Model is saved as `lenet_pretrained.pth` after pretraining.
+- Model weights are saved to `checkpoints/lenet_pretrained.pth` after pretraining and `checkpoints/lenet_finetuned.pth` after finetuning.
 
 ---
 
