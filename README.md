@@ -22,8 +22,8 @@ A small PyTorch project that trains a **LeNet-5** on **MNIST** in two stages: a 
 lenet_mnist/
 ├── lenet/                # Library package
 │   ├── config.py         # Default hyperparameters and paths
-│   ├── data.py           # MNIST dataloaders (torchvision + preprocessing)
-│   ├── model.py           # LeNet-5 architecture
+│   ├── mnist.py          # MNIST dataloaders (torchvision + preprocessing)
+│   ├── lenet5.py         # LeNet-5 architecture
 │   ├── train.py           # Training loop with TensorBoard + CSV logging
 │   └── evaluate.py       # Test-set accuracy
 ├── main.py               # CLI entry point: runs pretrain -> eval -> finetune -> eval
@@ -31,7 +31,7 @@ lenet_mnist/
 ├── environment.yml       # Conda environment definition
 ├── checkpoints/          # Saved model weights (created on first run, gitignored)
 ├── data/                 # MNIST dataset, auto-downloaded on first run (gitignored)
-└── runs/                 # TensorBoard event files + CSV loss logs (gitignored)
+└── logs/                 # TensorBoard event files + CSV loss logs (gitignored)
 ```
 
 ---
@@ -86,23 +86,23 @@ Available flags (`python main.py --help`):
 | `--momentum` | 0.9 | SGD momentum |
 | `--data-dir` | `data` | Where MNIST is downloaded to / read from |
 | `--checkpoint-dir` | `checkpoints` | Where model weights are saved |
-| `--log-dir` | `runs` | Where TensorBoard + CSV logs are written |
+| `--log-dir` | `logs` | Where TensorBoard + CSV logs are written |
 
 ---
 
 ## 💾 Outputs
 
 - **Checkpoints**: `checkpoints/lenet_pretrained.pth` and `checkpoints/lenet_finetuned.pth`
-- **Logs**: `runs/pretrain/` and `runs/finetune/`, each with a TensorBoard event file and a `<phase>_log.csv` (columns: `Epoch, Loss`)
+- **Logs**: `logs/pretrain/` and `logs/finetune/`, each with a TensorBoard event file and a `<phase>_log.csv` (columns: `Epoch, Loss`)
 
-All three of `checkpoints/`, `data/`, and `runs/` are gitignored — they're regenerated locally, not checked into version control.
+All three of `checkpoints/`, `data/`, and `logs/` are gitignored — they're regenerated locally, not checked into version control.
 
 ---
 
 ## 📊 Visualize with TensorBoard
 
 ```bash
-tensorboard --logdir=runs
+tensorboard --logdir=logs
 ```
 
 Then open [http://localhost:6006](http://localhost:6006) to see the pretrain and finetune loss curves.

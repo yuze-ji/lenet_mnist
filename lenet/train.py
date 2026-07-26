@@ -8,7 +8,7 @@ from tqdm import tqdm
 import csv
 import os
 
-def train(model, train_loader, epochs, lr, momentum, model_path=None, log_dir="runs/exp", phase="pretrain"):
+def train(model, train_loader, epochs, lr, momentum, model_path=None, log_dir="logs/exp", phase="pretrain"):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     criterion = nn.CrossEntropyLoss()

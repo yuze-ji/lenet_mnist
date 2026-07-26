@@ -1,4 +1,4 @@
-# lenet/model.py
+# lenet/lenet5.py
 
 import torch.nn as nn
 import torch.nn.functional as F

@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
 data/
-runs/
+logs/
 checkpoints/
 *.pth

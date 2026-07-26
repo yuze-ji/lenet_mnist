@@ -6,8 +6,8 @@ import os
 import torch
 
 from lenet import config
-from lenet.model import LeNet5
-from lenet.data import get_mnist_loaders
+from lenet.lenet5 import LeNet5
+from lenet.mnist import get_mnist_loaders
 from lenet.train import train
 from lenet.evaluate import evaluate
 

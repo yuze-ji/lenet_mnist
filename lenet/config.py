@@ -9,4 +9,4 @@ momentum = 0.9
 
 data_dir = "data"
 checkpoint_dir = "checkpoints"
-log_dir = "runs"
+log_dir = "logs"

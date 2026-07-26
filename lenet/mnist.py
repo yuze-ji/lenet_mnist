@@ -1,4 +1,4 @@
-# lenet/data.py
+# lenet/mnist.py
 
 import torch
 from torchvision import datasets, transforms
