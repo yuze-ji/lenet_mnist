@@ -1,115 +1,145 @@
 # LeNet-MNIST Two-Stage Training Experiment
 
-This project implements a **two-stage training pipeline** (pretraining + finetuning) using the classic **LeNet-5** architecture on the **MNIST** dataset. It demonstrates how a model can benefit from representation learning in the pretraining stage, followed by performance refinement in the finetuning stage.
+A small PyTorch project that trains a **LeNet-5** on **MNIST** in two stages: a *pretrain* stage, then a *finetune* stage that continues training the same model (same dataset, lower learning rate). Both stages log to TensorBoard and CSV, and are runnable end-to-end with a single CLI command.
+
+> **Note:** the "finetune" stage currently reuses the exact same MNIST training set as pretraining, just at a lower learning rate — it's a continued-training pass, not finetuning on a different dataset or task.
 
 ---
 
 ## 📦 Project Overview
 
 - 🔧 Framework: PyTorch
-- 📊 Visualizations: TensorBoard
-- 🧪 Dataset: MNIST (resized to 32×32 for LeNet compatibility)
-- 📁 Model: LeNet-5
-- 💡 Goal: Validate two-stage training effectiveness
+- 🧪 Dataset: MNIST, resized to 32×32 to match LeNet-5's expected input
+- 📁 Model: LeNet-5 — conv → avg-pool → conv → avg-pool → fc → fc → fc, with ReLU activations (a modernized variant of the original tanh/sigmoid LeNet-5)
+- 📊 Logging: TensorBoard scalars + per-epoch CSV loss logs
+- 💡 Goal: exercise a two-stage (pretrain/finetune) training pipeline on a small, fast-to-train model
 
 ---
 
-## 🗂️ Folder Structure
+## 🗂️ Project Structure
 
 ```
 lenet_mnist/
-├── lenet/                   # Library package
-│   ├── config.py            # Default hyperparameters and paths
-│   ├── data.py               # Data loader with torchvision + preprocessing
-│   ├── model.py              # LeNet-5 model architecture
-│   ├── train.py               # Training loop with TensorBoard and CSV logging
-│   └── evaluate.py           # Accuracy calculation on test set
-├── main.py                  # CLI entry point for training + finetuning + eval
-├── environment.yml          # Conda environment definition
-├── requirements.txt         # pip dependencies (alternative to conda)
-├── checkpoints/             # Saved model weights (gitignored, created on first run)
-├── data/                    # MNIST dataset, downloaded automatically (gitignored)
-└── runs/                    # TensorBoard logs and CSV loss tracking (gitignored)
+├── lenet/                # Library package
+│   ├── config.py         # Default hyperparameters and paths
+│   ├── data.py           # MNIST dataloaders (torchvision + preprocessing)
+│   ├── model.py           # LeNet-5 architecture
+│   ├── train.py           # Training loop with TensorBoard + CSV logging
+│   └── evaluate.py       # Test-set accuracy
+├── main.py               # CLI entry point: runs pretrain -> eval -> finetune -> eval
+├── requirements.txt      # pip dependencies
+├── environment.yml       # Conda environment definition
+├── checkpoints/          # Saved model weights (created on first run, gitignored)
+├── data/                 # MNIST dataset, auto-downloaded on first run (gitignored)
+└── runs/                 # TensorBoard event files + CSV loss logs (gitignored)
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Create Conda Environment
+### 1. Set up the environment
+
+Using conda:
 
 ```bash
 conda env create -f environment.yml
 conda activate lenet-env
 ```
 
-### 2. Run Training and Evaluation
+Or with pip (into an existing Python 3.9+ environment):
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Run training and evaluation
 
 ```bash
 python main.py
 ```
 
-This performs:
+This runs, in order:
 - 🧠 Pretraining on MNIST
-- 📈 Evaluation on test set
-- 🔁 Finetuning on the same dataset
-- ✅ Final evaluation with updated weights
+- 📈 Evaluation on the test set
+- 🔁 Continued training ("finetune") on the same training set, at `lr / 10`
+- ✅ Final evaluation
 
-Defaults live in [`lenet/config.py`](lenet/config.py) and can be overridden via CLI flags, e.g.:
+MNIST is downloaded automatically into `data/` the first time you run it.
+
+### 3. Override defaults via CLI flags
+
+Defaults live in [`lenet/config.py`](lenet/config.py). Any of them can be overridden without editing that file:
 
 ```bash
 python main.py --epochs-pretrain 10 --epochs-finetune 5 --lr 0.005 --batch-size 128
 ```
 
-Run `python main.py --help` for the full list of options (batch size, epochs, learning rate, momentum, data/checkpoint/log directories).
+Available flags (`python main.py --help`):
+
+| Flag | Default | Meaning |
+|------|---------|---------|
+| `--batch-size` | 64 | DataLoader batch size |
+| `--epochs-pretrain` | 5 | Epochs for the pretrain stage |
+| `--epochs-finetune` | 3 | Epochs for the finetune stage |
+| `--lr` | 0.01 | Pretrain learning rate (finetune uses `lr / 10`) |
+| `--momentum` | 0.9 | SGD momentum |
+| `--data-dir` | `data` | Where MNIST is downloaded to / read from |
+| `--checkpoint-dir` | `checkpoints` | Where model weights are saved |
+| `--log-dir` | `runs` | Where TensorBoard + CSV logs are written |
+
+---
+
+## 💾 Outputs
+
+- **Checkpoints**: `checkpoints/lenet_pretrained.pth` and `checkpoints/lenet_finetuned.pth`
+- **Logs**: `runs/pretrain/` and `runs/finetune/`, each with a TensorBoard event file and a `<phase>_log.csv` (columns: `Epoch, Loss`)
+
+All three of `checkpoints/`, `data/`, and `runs/` are gitignored — they're regenerated locally, not checked into version control.
 
 ---
 
 ## 📊 Visualize with TensorBoard
 
-To view the training and finetuning loss curves:
-
 ```bash
 tensorboard --logdir=runs
 ```
 
-Then open your browser at [http://localhost:6006](http://localhost:6006)
+Then open [http://localhost:6006](http://localhost:6006) to see the pretrain and finetune loss curves.
 
 ---
 
 ## 🧪 Sample Results
 
-| Phase      | Final Loss | Accuracy   |
-|------------|-------------|------------|
-| Pretrain   | ~0.0386     | ~98.75%    |
-| Finetune   | ~0.0112     | ~99.02% ✅ |
+Per-epoch training loss from a local run with the default config (batch size 64, lr 0.01, momentum 0.9, 5 pretrain + 3 finetune epochs, CPU):
 
-> Finetuning phase further reduces the loss and improves accuracy, validating the two-stage approach.
+| Phase | Epoch 1 | Epoch 2 | Epoch 3 | Epoch 4 | Epoch 5 |
+|-------|---------|---------|---------|---------|---------|
+| Pretrain | 0.4099 | 0.0808 | 0.0553 | 0.0420 | 0.0334 |
+| Finetune | 0.0177 | 0.0151 | 0.0140 | — | — |
+
+Test-set accuracy is printed to stdout after each evaluation step rather than logged to a file — run `python main.py` yourself to see the numbers for your machine.
 
 ---
 
 ## 📌 Notes
 
-- Input images are resized to 32×32 to fit LeNet's expected input.
-- CSV logs are stored at:
-  - `runs/pretrain/pretrain_log.csv`
-  - `runs/finetune/finetune_log.csv`
-- Model weights are saved to `checkpoints/lenet_pretrained.pth` after pretraining and `checkpoints/lenet_finetuned.pth` after finetuning.
+- Input images are resized to 32×32 to fit LeNet-5's expected input size.
+- Training runs on GPU automatically if `torch.cuda.is_available()`, otherwise falls back to CPU — there's no Apple Silicon (MPS) path.
+- Re-running `python main.py` overwrites the checkpoints and logs from the previous run (same filenames each time).
 
 ---
 
 ## 🔮 Future Ideas
 
-- Add validation split + early stopping
-- Try on CIFAR-10 or CINIC-10 with GoogLeNet
-- Use transfer learning across datasets (MNIST → custom digits)
-- Add confusion matrix + detailed metrics
+- Add a validation split + early stopping
+- Log test-set accuracy to CSV/TensorBoard instead of only stdout
+- Try a real second dataset for the finetune stage instead of reusing the pretrain data
+- Try on CIFAR-10 or CINIC-10 with a deeper model (e.g. GoogLeNet)
+- Add a confusion matrix + per-class metrics
 
 ---
 
-## 🙋‍♀️ Author
+## 🙋 Author
 
-This repository was built for educational and research purposes.  
-Feel free to fork it, contribute ideas, or build your own experiments based on it!
-
----
+This repository was built for educational and research purposes. Feel free to fork it, contribute ideas, or build your own experiments based on it!
